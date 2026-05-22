@@ -1,4 +1,4 @@
-name: Busca Diária de Imóveis
+name: Busca Diaria de Imoveis
 
 on:
   schedule:
