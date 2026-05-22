@@ -9,6 +9,7 @@ scraper.py — Fetch and parse Caixa property listings for São Carlos, SP.
 import re
 import time
 import logging
+from datetime import datetime
 from typing import Optional
 
 import requests
@@ -704,3 +705,26 @@ def _split_by_br(tag) -> list[str]:
     if current:
         segments.append("".join(current).strip())
     return segments
+
+
+# ---------------------------------------------------------------------------
+# Main entry point
+# ---------------------------------------------------------------------------
+
+def main():
+    timestamp = datetime.now().strftime("%d/%m/%Y às %H:%M")
+    try:
+        properties = fetch_all_properties()
+        print(f"[OK] {len(properties)} imóvel(is) encontrado(s)")
+    except Exception as e:
+        print(f"[ERRO] Falha ao buscar imóveis: {e}")
+        raise  # re-raise: GitHub Actions will record failure and NOT commit
+
+    html_output = generate_html(properties, timestamp)
+    with open("resultado.html", "w", encoding="utf-8") as f:
+        f.write(html_output)
+    print("[OK] resultado.html gerado")
+
+
+if __name__ == "__main__":
+    main()

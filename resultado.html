@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Leilão Imóveis — São Carlos</title>
+  <style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: Arial, sans-serif; background: #f4f4f4; color: #333; }
+header { background: #003087; color: white; padding: 20px; text-align: center; }
+header h1 { font-size: 1.4rem; }
+.meta { font-size: 0.85rem; opacity: 0.85; margin-top: 6px; }
+main { max-width: 960px; margin: 24px auto; padding: 0 16px; }
+.cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; }
+.card { background: white; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,.1); overflow: hidden; }
+.card-foto { width: 100%; height: 160px; object-fit: cover; display: block; }
+.card-foto-vazia { width: 100%; height: 160px; background: #ddd; display: flex; align-items: center; justify-content: center; color: #888; font-size: 0.85rem; }
+.card-info { padding: 12px; }
+.card-endereco { font-size: 0.9rem; margin-bottom: 6px; }
+.card-valor { font-size: 1.25rem; font-weight: bold; color: #003087; margin-bottom: 4px; }
+.card-detalhes { font-size: 0.8rem; color: #666; margin-bottom: 12px; }
+.card-actions { display: flex; gap: 8px; }
+.btn-ver, .btn-calcular { flex: 1; padding: 8px; border-radius: 4px; font-size: 0.85rem; text-align: center; cursor: pointer; border: none; }
+.btn-ver { background: #003087; color: white; text-decoration: none; display: block; }
+.btn-calcular { background: #f0a500; color: #333; font-weight: bold; }
+.btn-ver:hover { background: #00256b; }
+.btn-calcular:hover { background: #d4920a; }
+.sem-imoveis { text-align: center; padding: 40px; color: #666; font-size: 1rem; }
+.modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.5); z-index: 100; overflow-y: auto; padding: 20px; }
+.modal-overlay.ativo { display: flex; align-items: flex-start; justify-content: center; }
+.modal { background: white; border-radius: 8px; padding: 24px; width: 100%; max-width: 560px; margin: auto; }
+.modal h2 { font-size: 1.1rem; margin-bottom: 16px; color: #003087; }
+.modal-tabs { display: flex; gap: 8px; margin-bottom: 16px; }
+.tab-btn { flex: 1; padding: 8px; border: 2px solid #003087; background: white; color: #003087; border-radius: 4px; cursor: pointer; font-weight: bold; }
+.tab-btn.ativo { background: #003087; color: white; }
+.form-group { margin-bottom: 12px; }
+.form-group label { display: block; font-size: 0.8rem; color: #555; margin-bottom: 4px; }
+.form-group input, .form-group select { width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px; font-size: 0.9rem; }
+.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.resultado { margin-top: 16px; padding: 16px; border-radius: 6px; background: #f9f9f9; border: 2px solid #ddd; }
+.resultado.lucro { background: #e8f5e9; border-color: #4caf50; }
+.resultado.prejuizo { background: #ffebee; border-color: #f44336; }
+.resultado h3 { font-size: 0.95rem; margin-bottom: 8px; }
+.resultado-linha { display: flex; justify-content: space-between; font-size: 0.85rem; padding: 3px 0; }
+.resultado-destaque { font-size: 1.1rem; font-weight: bold; margin-top: 8px; padding-top: 8px; border-top: 1px solid #ccc; }
+.btn-fechar { float: right; background: none; border: none; font-size: 1.2rem; cursor: pointer; color: #666; }
+</style>
+</head>
+<body>
+  <header>
+    <h1>Apartamentos de Leilão — São Carlos - SP</h1>
+    <p class="meta">Atualizado em 22/05/2026 às 12:56 &nbsp;|&nbsp; 2 imóvel(is) encontrado(s) &nbsp;|&nbsp; Até R$ 120.000</p>
+  </header>
+  <main>
+    <div class="cards">
+    <div class="card">
+      <div class="card-foto-wrap"><img src="https://venda-imoveis.caixa.gov.br/fotos/F855553945705421.jpg" alt="Foto do imóvel" class="card-foto"></div>
+      <div class="card-info">
+        <p class="card-endereco">SERVIDAO DE PAS JOAO DERIGGI,N. 181 Apto. 103 BL 23 VG 423,  , PARQUE FEHR</p>
+        <p class="card-valor">R$ 113.025</p>
+        <p class="card-detalhes">88,01 m² &nbsp;|&nbsp; </p>
+        <div class="card-actions">
+          <a href="https://venda-imoveis.caixa.gov.br/sistema/detalhe-imovel.asp?hdnimovel=8555539457054" target="_blank" class="btn-ver">Ver na Caixa →</a>
+          <button class="btn-calcular" onclick="abrirCalculadora(113025.32)">Calcular ▶</button>
+        </div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-foto-wrap"><img src="https://venda-imoveis.caixa.gov.br/fotos/F878770386897021.jpg" alt="Foto do imóvel" class="card-foto"></div>
+      <div class="card-info">
+        <p class="card-endereco">AVENIDA JOAO STELLA,N. 300 Apto. 402 4º PAVIMENTO - BL 31,  , RESIDENCIAL MONSENHOR ROMEU TORTORE</p>
+        <p class="card-valor">R$ 119.069</p>
+        <p class="card-detalhes">94,69 m² &nbsp;|&nbsp; </p>
+        <div class="card-actions">
+          <a href="https://venda-imoveis.caixa.gov.br/sistema/detalhe-imovel.asp?hdnimovel=8787703868970" target="_blank" class="btn-ver">Ver na Caixa →</a>
+          <button class="btn-calcular" onclick="abrirCalculadora(119069.46)">Calcular ▶</button>
+        </div>
+      </div>
+    </div></div>
+  </main>
+
+  <div class="modal-overlay" id="modal-overlay" onclick="fecharSeOverlay(event)">
+    <div class="modal">
+      <button class="btn-fechar" onclick="fecharCalculadora()">✕</button>
+      <h2>Calculadora de Viabilidade</h2>
+      <div class="modal-tabs">
+        <button class="tab-btn ativo" onclick="setTab('avista', this)">À Vista</button>
+        <button class="tab-btn" onclick="setTab('financiado', this)">Financiado</button>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label>Valor da Arrematação (R$)</label>
+          <input type="number" id="f-arrematacao" value="0" oninput="calcular()">
+        </div>
+        <div class="form-group">
+          <label>Valor de Venda Estimado (R$)</label>
+          <input type="number" id="f-venda" value="0" oninput="calcular()">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Comissão Leiloeiro (%)</label>
+          <input type="number" id="f-leiloeiro" value="5" step="0.1" oninput="calcular()">
+        </div>
+        <div class="form-group">
+          <label>ITBI (%)</label>
+          <input type="number" id="f-itbi" value="2" step="0.1" oninput="calcular()">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Registro (R$)</label>
+          <input type="number" id="f-registro" value="0" oninput="calcular()">
+        </div>
+        <div class="form-group">
+          <label>Advogado Desocupação (R$)</label>
+          <input type="number" id="f-advogado" value="0" oninput="calcular()">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Reforma (R$)</label>
+          <input type="number" id="f-reforma" value="0" oninput="calcular()">
+        </div>
+        <div class="form-group">
+          <label>Outros (R$)</label>
+          <input type="number" id="f-outros" value="0" oninput="calcular()">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Prazo até Venda (meses)</label>
+          <input type="number" id="f-prazo" value="0" oninput="calcular()">
+        </div>
+        <div class="form-group">
+          <label>IPTU Mensal (R$)</label>
+          <input type="number" id="f-iptu" value="0" oninput="calcular()">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Condomínio Mensal (R$)</label>
+          <input type="number" id="f-cond" value="0" oninput="calcular()">
+        </div>
+        <div class="form-group">
+          <label>Comissão Corretor (%)</label>
+          <input type="number" id="f-corretor" value="6" step="0.1" oninput="calcular()">
+        </div>
+      </div>
+
+      <div id="campos-financiado" style="display:none">
+        <hr style="margin:12px 0;border-color:#eee">
+        <p style="font-size:0.8rem;color:#555;margin-bottom:8px;">Estrutura do Financiamento</p>
+        <div class="form-row">
+          <div class="form-group">
+            <label>% de Entrada</label>
+            <input type="number" id="f-entrada" value="20" step="1" oninput="calcular()">
+          </div>
+          <div class="form-group">
+            <label>Taxa de Juros Anual (%)</label>
+            <input type="number" id="f-taxa" value="8.99" step="0.01" oninput="calcular()">
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Prazo do Financiamento (meses, máx 420)</label>
+            <input type="number" id="f-prazo-fin" value="240" max="420" oninput="calcular()">
+          </div>
+          <div class="form-group">
+            <label>Tabela de Amortização</label>
+            <select id="f-tabela" onchange="calcular()">
+              <option value="PRICE">PRICE (parcela fixa)</option>
+              <option value="SAC">SAC (amortização constante)</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <div class="resultado" id="resultado" style="display:none"></div>
+    </div>
+  </div>
+
+  <script>
+let modoAtual = 'avista';
+
+function setTab(modo, btn) {
+  modoAtual = modo;
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('ativo'));
+  btn.classList.add('ativo');
+  document.getElementById('campos-financiado').style.display = modo === 'financiado' ? 'block' : 'none';
+  calcular();
+}
+
+function abrirCalculadora(valorArrematacao) {
+  document.getElementById('f-arrematacao').value = valorArrematacao;
+  document.getElementById('modal-overlay').classList.add('ativo');
+  calcular();
+}
+
+function fecharCalculadora() {
+  document.getElementById('modal-overlay').classList.remove('ativo');
+}
+
+function fecharSeOverlay(e) {
+  if (e.target === document.getElementById('modal-overlay')) fecharCalculadora();
+}
+
+function n(id) { return parseFloat(document.getElementById(id).value) || 0; }
+
+function fmtBRL(v) {
+  return 'R$ ' + Math.abs(v).toLocaleString('pt-BR', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+}
+
+function fmtPct(v) { return (v * 100).toFixed(2) + '%'; }
+
+function pmtPrice(pv, nMeses, i) {
+  if (nMeses <= 0 || i <= 0) return 0;
+  return pv * i * Math.pow(1 + i, nMeses) / (Math.pow(1 + i, nMeses) - 1);
+}
+
+function saldoPrice(pv, k, nMeses, i) {
+  if (nMeses <= 0 || i <= 0) return pv;
+  const pmt = pmtPrice(pv, nMeses, i);
+  return pv * Math.pow(1 + i, k) - pmt * (Math.pow(1 + i, k) - 1) / i;
+}
+
+function calcSAC(pv, k, nMeses, i) {
+  if (nMeses <= 0) return { totalPago: 0, saldo: pv };
+  const amort = pv / nMeses;
+  let saldo = pv, totalPago = 0;
+  for (let m = 1; m <= k; m++) {
+    totalPago += amort + saldo * i;
+    saldo -= amort;
+  }
+  return { totalPago, saldo: Math.max(0, saldo) };
+}
+
+function calcular() {
+  const arr        = n('f-arrematacao');
+  const venda      = n('f-venda');
+  const prazo      = n('f-prazo');
+  const pctCorretor = n('f-corretor') / 100;
+
+  const comissaoLeiloeiro = arr * (n('f-leiloeiro') / 100);
+  const itbi              = arr * (n('f-itbi') / 100);
+  const registro          = n('f-registro');
+  const advogado          = n('f-advogado');
+  const reforma           = n('f-reforma');
+  const outros            = n('f-outros');
+  const iptuTotal         = n('f-iptu') * prazo;
+  const condTotal         = n('f-cond') * prazo;
+
+  let totalCustos, saldoDevedor = 0, totalPagoFin = 0, entrada = 0;
+
+  if (modoAtual === 'avista') {
+    totalCustos = arr + comissaoLeiloeiro + itbi + registro + advogado + reforma + outros + iptuTotal + condTotal;
+  } else {
+    entrada          = arr * (n('f-entrada') / 100);
+    const financiado = arr - entrada;
+    const i          = Math.pow(1 + n('f-taxa') / 100, 1 / 12) - 1;
+    const nFin       = n('f-prazo-fin');
+    const tabela     = document.getElementById('f-tabela').value;
+
+    if (tabela === 'PRICE') {
+      const pmt    = pmtPrice(financiado, nFin, i);
+      totalPagoFin = pmt * prazo;
+      saldoDevedor = saldoPrice(financiado, prazo, nFin, i);
+    } else {
+      const sac    = calcSAC(financiado, prazo, nFin, i);
+      totalPagoFin = sac.totalPago;
+      saldoDevedor = sac.saldo;
+    }
+
+    totalCustos = entrada + comissaoLeiloeiro + itbi + registro + advogado + reforma + outros + iptuTotal + condTotal + totalPagoFin;
+  }
+
+  const ganhoBruto      = venda - totalCustos - saldoDevedor;
+  const ir              = Math.max(0, ganhoBruto * 0.15);
+  const comissaoCorretor = venda * pctCorretor;
+  const valorRealVenda  = venda - comissaoCorretor - ir - saldoDevedor;
+  const lucroReais      = valorRealVenda - totalCustos;
+  const base            = modoAtual === 'avista' ? totalCustos : (totalCustos + saldoDevedor);
+  const lucroPercent    = base > 0 ? lucroReais / base : 0;
+
+  const div = document.getElementById('resultado');
+  div.style.display = 'block';
+  div.className = 'resultado ' + (lucroReais >= 0 ? 'lucro' : 'prejuizo');
+
+  let linhas = `
+    <div class="resultado-linha"><span>Total de Custos</span><span>${fmtBRL(totalCustos)}</span></div>
+    <div class="resultado-linha"><span>Comissão Corretor</span><span>${fmtBRL(comissaoCorretor)}</span></div>
+    <div class="resultado-linha"><span>IR Ganho de Capital (15%)</span><span>${fmtBRL(ir)}</span></div>`;
+
+  if (modoAtual === 'financiado') {
+    linhas += `
+    <div class="resultado-linha"><span>Entrada paga</span><span>${fmtBRL(entrada)}</span></div>
+    <div class="resultado-linha"><span>Pago no financ. até a venda</span><span>${fmtBRL(totalPagoFin)}</span></div>
+    <div class="resultado-linha"><span>Saldo devedor na venda</span><span>${fmtBRL(saldoDevedor)}</span></div>`;
+  }
+
+  linhas += `
+    <div class="resultado-linha"><span>Valor Real de Venda</span><span>${fmtBRL(valorRealVenda)}</span></div>
+    <div class="resultado-destaque resultado-linha">
+      <span>Lucro ${lucroReais >= 0 ? '✅' : '❌'}</span>
+      <span>${fmtBRL(lucroReais)} (${fmtPct(lucroPercent)})</span>
+    </div>`;
+
+  div.innerHTML = '<h3>Resultado</h3>' + linhas;
+}
+</script>
+</body>
+</html>
