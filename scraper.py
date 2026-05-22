@@ -7,6 +7,7 @@ scraper.py — Fetch and parse Caixa property listings for São Carlos, SP.
 """
 
 import re
+import time
 import logging
 from typing import Optional
 
@@ -76,28 +77,43 @@ def fetch_property_ids(session: requests.Session) -> list[str]:
     one element per page of results.
     """
     log.info("Step 1: fetching property ID groups from Caixa …")
-    resp = session.post(STEP1_URL, data=STEP1_PARAMS, timeout=30)
-    resp.raise_for_status()
+    resp = None
+    for attempt in range(1, 4):
+        try:
+            resp = session.post(STEP1_URL, data=STEP1_PARAMS, timeout=30)
+            resp.raise_for_status()
+            break
+        except requests.RequestException as exc:
+            log.warning("Step 1 attempt %d/3 failed: %s", attempt, exc)
+            if attempt < 3:
+                time.sleep(2)
+            else:
+                raise
 
+    resp.encoding = resp.apparent_encoding
     soup = BeautifulSoup(resp.text, "html.parser")
 
     total_pages_tag = soup.find("input", {"name": "hdnQtdPag"})
     total_count_tag = soup.find("input", {"name": "hdnQtdRegistros"})
+
+    max_pages = 50  # safety cap when hdnQtdPag is absent
     if total_pages_tag:
         log.info("Total pages: %s", total_pages_tag.get("value", "?"))
+        try:
+            max_pages = int(total_pages_tag.get("value", 50))
+        except (ValueError, TypeError):
+            pass
     if total_count_tag:
         log.info("Total records: %s", total_count_tag.get("value", "?"))
 
     id_groups: list[str] = []
-    page = 1
-    while True:
+    for page in range(1, max_pages + 1):
         tag = soup.find("input", {"name": f"hdnImov{page}"})
         if tag is None:
             break
         value = tag.get("value", "").strip()
         if value:
             id_groups.append(value)
-        page += 1
 
     log.info("Found %d ID group(s).", len(id_groups))
     return id_groups
@@ -113,8 +129,20 @@ def fetch_property_html(session: requests.Session, ids_str: str) -> str:
     Returns:
         Raw HTML string.
     """
-    resp = session.post(STEP2_URL, data={"hdnImov": ids_str}, timeout=30)
-    resp.raise_for_status()
+    resp = None
+    for attempt in range(1, 4):
+        try:
+            resp = session.post(STEP2_URL, data={"hdnImov": ids_str}, timeout=30)
+            resp.raise_for_status()
+            break
+        except requests.RequestException as exc:
+            log.warning("Step 2 attempt %d/3 failed: %s", attempt, exc)
+            if attempt < 3:
+                time.sleep(2)
+            else:
+                raise
+
+    resp.encoding = resp.apparent_encoding
     return resp.text
 
 
@@ -167,20 +195,23 @@ def fetch_all_properties() -> list[dict]:
     4. Filter to valor <= PRICE_LIMIT.
     """
     session = get_session()
-    id_groups = fetch_property_ids(session)
+    try:
+        id_groups = fetch_property_ids(session)
 
-    all_props: list[dict] = []
-    for i, ids_str in enumerate(id_groups, start=1):
-        log.info("Fetching group %d/%d …", i, len(id_groups))
-        html = fetch_property_html(session, ids_str)
-        props = parse_properties(html)
-        log.info("  → %d properties parsed.", len(props))
-        all_props.extend(props)
+        all_props: list[dict] = []
+        for i, ids_str in enumerate(id_groups, start=1):
+            log.info("Fetching group %d/%d …", i, len(id_groups))
+            html = fetch_property_html(session, ids_str)
+            props = parse_properties(html)
+            log.info("  → %d properties parsed.", len(props))
+            all_props.extend(props)
+    finally:
+        session.close()
 
     before = len(all_props)
-    filtered = [p for p in all_props if p["valor"] <= PRICE_LIMIT]
+    filtered = [p for p in all_props if p["valor"] > 0.0 and p["valor"] <= PRICE_LIMIT]
     log.info(
-        "Total fetched: %d | After price filter (<=R$%.0f): %d",
+        "Total fetched: %d | After price filter (0 < valor <= R$%.0f): %d",
         before,
         PRICE_LIMIT,
         len(filtered),
@@ -264,8 +295,8 @@ def _parse_single_property(ul_tag) -> Optional[dict]:
 
         else:
             # Variant B: Venda Online / Compra Direta
-            # Modality: <b> tag before fotoimovel-col1 (e.g. <b>Venda Online</b>)
-            modality_b_tag = ul_tag.select_one("b")
+            # Modality: <b> or <strong> inside div.fotoimovel-col1
+            modality_b_tag = ul_tag.select_one("div.fotoimovel-col1 b") or ul_tag.select_one("div.fotoimovel-col1 strong")
             modalidade = modality_b_tag.get_text(strip=True) if modality_b_tag else ""
 
             # Price: bold tag inside col2 — "Valor mínimo de venda: R$ 113.025,32"
