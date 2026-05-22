@@ -1,7 +1,7 @@
 """Unit tests for scraper.py — written before implementation (TDD)."""
 
 import pytest
-from scraper import parse_valor, parse_properties
+from scraper import parse_valor, parse_properties, generate_html
 
 
 def test_parse_valor_formato_brasileiro():
@@ -102,3 +102,38 @@ def test_parse_properties_chaves_obrigatorias():
     props = parse_properties(html)
     required_keys = {"endereco", "valor", "area", "modalidade", "foto", "link"}
     assert required_keys.issubset(props[0].keys())
+
+
+def test_generate_html_contem_timestamp():
+    html = generate_html([], "22/05/2026 às 08:00")
+    assert "22/05/2026" in html
+
+
+def test_generate_html_sem_imoveis_mostra_aviso():
+    html = generate_html([], "22/05/2026 às 08:00")
+    assert "nenhum" in html.lower() or "encontrado" in html.lower()
+
+
+def test_generate_html_com_imovel_mostra_card():
+    props = [{
+        "endereco": "Rua Exemplo, 123 - Centro",
+        "valor": 85000.0,
+        "area": "52 m²",
+        "modalidade": "2º Leilão",
+        "foto": "",
+        "link": "https://example.com",
+    }]
+    html = generate_html(props, "22/05/2026 às 08:00")
+    assert "Rua Exemplo, 123" in html
+    assert "85.000" in html
+    assert "2º Leilão" in html
+    assert "https://example.com" in html
+
+
+def test_generate_html_mostra_contagem():
+    props = [
+        {"endereco": "A", "valor": 80000, "area": "40", "modalidade": "1º Leilão", "foto": "", "link": "#"},
+        {"endereco": "B", "valor": 90000, "area": "50", "modalidade": "2º Leilão", "foto": "", "link": "#"},
+    ]
+    html = generate_html(props, "22/05/2026 às 08:00")
+    assert "2" in html
